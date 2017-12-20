@@ -1,0 +1,52 @@
+#!/bin/bash
+
+if [ "$1" == "deb9" ];
+then
+	os='"debian/stretch64"'
+elif [ "$1" == "deb8" ];
+then
+	os='"debian/jessie64"'
+
+elif [ "$1" == "u12" ];
+then
+	os='"ubuntu/precise64"'
+
+elif [ "$1" == "u14" ];
+then
+	os='"ubuntu/trusty64"'
+
+elif [ "$1" == "u16" ];
+then
+	os='"ubuntu/xenial64"'
+fi
+
+name=$2
+memory=$3
+
+cat <<EOF > Vagrantfile
+Vagrant.configure("2") do |config|
+	config.vm.box = $os
+#	config.vm.network "forwarded_port", guest: "$4", host: "$4"
+#	config.vm.synced_folder "www", "/var/www"
+#	config.vm.synced_folder "www", "/var/www", type: "sshfs"
+
+#	config.ssh.username = "vagrant"
+#	config.ssh.password = "vagrant"
+
+	#config.ssh.private_key_path = "~/.ssh/vagrant-test1"
+
+	config.vm.provider "virtualbox" do |vb|
+		vb.customize [
+			"modifyvm", :id, 
+			"--cpuexecutioncap", "50",
+			"--audio", "none"
+		]
+
+		vb.name = "$name"
+		vb.memory = "$memory"
+		vb.cpus = "1"
+	end
+end
+EOF
+
+vagrant up --provider virtualbox --destroy-on-error --provision
