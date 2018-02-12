@@ -58,4 +58,4 @@ end
 EOF
 
 
-#vagrant up --provider virtualbox --destroy-on-error --provision
+vagrant up --provider virtualbox --destroy-on-error --provision
