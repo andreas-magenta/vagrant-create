@@ -1,53 +1,61 @@
 #!/bin/bash
 
-if [ "$1" == "deb9" ];
-then
-	os='"debian/stretch64"'
-elif [ "$1" == "deb8" ];
-then
-	os='"debian/jessie64"'
-
-elif [ "$1" == "u12" ];
-then
-	os='"ubuntu/precise64"'
-
-elif [ "$1" == "u14" ];
-then
-	os='"ubuntu/trusty64"'
-
-elif [ "$1" == "u16" ];
-then
-	os='"ubuntu/xenial64"'
-fi
-
-name=$2
+name=$1
+distro=$2
 memory=$3
+
+distros=(debian ubuntu)
+
+case $distro in
+    deb7)
+        distro="${distros[0]}/wheezy64"
+        ;;
+    deb8)
+        distro="${distros[0]}/jessie64"
+        ;;
+    deb9)
+        distro="${distros[0]}/stretch64"
+        ;;
+    u12)
+        distro="${distros[1]}/precise64"
+        ;;
+    u14)
+        distro="${distros[1]}/trusty64"
+        ;;
+    u16)
+        distro="${distros[1]}/xenial64"
+        ;;
+    *)
+        echo "No distro with that name"
+esac
+
+mkdir -p $name && cd $name
 
 cat <<EOF > Vagrantfile
 Vagrant.configure("2") do |config|
-	config.vm.box = $os
-	config.vm.hostname = "$2"
+    config.vm.box = "$distro"
+    config.vm.hostname = "$name"
+    config.vm.box_url = "https://vagrantcloud.com/$distro"
 #	config.vm.network "forwarded_port", guest: "$4", host: "$4"
-#	config.vm.synced_folder "www", "/var/www"
+#	config.vm.synced_folder "www", "/home/ubuntu/www"
 #	config.vm.synced_folder "www", "/var/www", type: "sshfs"
-
 #	config.ssh.username = "vagrant"
 #	config.ssh.password = "vagrant"
+#   config.ssh.private_key_path = "~/.ssh/vagrant-test1"
 
-	#config.ssh.private_key_path = "~/.ssh/vagrant-test1"
+    config.vm.provider "virtualbox" do |vb|
+        vb.customize [
+            "modifyvm", :id, 
+#           "--cpuexecutioncap", "50",
+            "--audio", "none"
+        ]
 
-	config.vm.provider "virtualbox" do |vb|
-		vb.customize [
-			"modifyvm", :id, 
-			"--cpuexecutioncap", "50",
-			"--audio", "none"
-		]
-
-		vb.name = "$name"
-		vb.memory = "$memory"
-		vb.cpus = "1"
-	end
+        vb.name = "$name"
+        vb.memory = "$memory"
+        vb.cpus = "1"
+    end
 end
 EOF
 
-vagrant up --provider virtualbox --destroy-on-error --provision
+
+#vagrant up --provider virtualbox --destroy-on-error --provision
